@@ -1,4 +1,7 @@
-import { CustomerField } from '@/app/lib/definitions';
+'use client';
+
+import { useState, useCallback } from 'react';
+import { CustomerField, InvoiceForm } from '@/app/lib/definitions';
 import Link from 'next/link';
 import {
   CheckIcon,
@@ -7,10 +10,53 @@ import {
   UserCircleIcon,
 } from '@heroicons/react/24/outline';
 import { Button } from '@/app/ui/button';
+import { createInvoice, State, updateInvoice  } from '@/app/lib/actions';
+import { useDebouncedCallback } from 'use-debounce';
+import { useActionState } from 'react';
 
-export default function Form({ customers }: { customers: CustomerField[] }) {
+export default function Form({
+  customers,
+  invoice,
+}: {
+  customers: CustomerField[];
+  invoice: InvoiceForm;
+}) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const initialState: State = { message: null, errors: {} }
+  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id)
+  const [state, formAction] = useActionState(updateInvoiceWithId, initialState)
+
+  // 定义带防抖的提交函数（300ms 防抖，避免重复提交）
+  // const debouncedSubmit = useDebouncedCallback(
+  //   async (formData: FormData) => {
+  //     setIsSubmitting(true)
+  //     try {
+  //       // 调用原服务器操作（如创建发票）
+  //       await createInvoice(formData)
+  //     } finally {
+  //       // 无论成功失败，都结束提交状态
+  //       setIsSubmitting(false)
+  //     }
+  //   },
+  //   300,
+  //   { leading: false, trailing: true }
+  // )
+
+  // // 自定义表单提交处理函数
+  // const handleSubmit = useCallback(
+  //   (e: React.FocusEvent<HTMLFormElement>) => {
+  //     // 阻止默认提交行为
+  //     e.preventDefault();
+  //     // 获取表单数据
+  //     const formData = new FormData(e.currentTarget)
+  //     // 调用防抖后的提交函数
+  //     debouncedSubmit(formData)
+  //   },
+  //   [debouncedSubmit]
+  // )
+
   return (
-    <form>
+    <form action={formAction}>
       <div className="rounded-md bg-gray-50 p-4 md:p-6">
         {/* Customer Name */}
         <div className="mb-4">
@@ -23,6 +69,7 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               name="customerId"
               className="peer block w-full cursor-pointer rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
               defaultValue=""
+              aria-describedby='customer-error'
             >
               <option value="" disabled>
                 Select a customer
@@ -34,6 +81,15 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
               ))}
             </select>
             <UserCircleIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500" />
+          </div>
+          <div id="customer-error" aria-live="polite" aria-atomic="true">
+            {state.errors?.customerId &&
+              state.errors.customerId.map((error: string) => (
+                <p className="mt-2 text-sm text-red-500" key={error}>
+                  {error}
+                </p>
+              ))
+            }
           </div>
         </div>
 
@@ -51,8 +107,18 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
                 step="0.01"
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                aria-describedby='amount-error'
               />
               <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
+            </div>
+            <div id="amount-error" aria-live="polite" aria-atomic="true">
+              {state.errors?.amount &&
+                state.errors.amount.map((error: string) => (
+                  <p className='mt-2 text-sm text-red-500' key={error}>
+                    {error}
+                  </p>
+                ))
+              }
             </div>
           </div>
         </div>
@@ -105,7 +171,12 @@ export default function Form({ customers }: { customers: CustomerField[] }) {
         >
           Cancel
         </Link>
-        <Button type="submit">Create Invoice</Button>
+        <Button
+          type="submit"
+          disabled={isSubmitting}
+        >
+          {isSubmitting ? "Create..." : "Create Invoice"}
+        </Button>
       </div>
     </form>
   );
