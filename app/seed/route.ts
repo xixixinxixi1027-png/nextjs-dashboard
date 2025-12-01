@@ -125,11 +125,12 @@ export async function GET() {
     console.log('seed 执行成功');
     return new Response('Seed 成功', { status: 200 });
   } catch (error) {
-    console.error('===== seed 整体执行失败 =====');
-    console.error('错误类型:', error.constructor.name);
+    console.error('========== seed 整体执行失败 ==========');
+    const err = error as Error;
+    console.error('错误类型:', err.constructor.name);
     if (error instanceof Error) {
-      console.error('错误消息:', error.message); // 关键：获取具体失败原因
-      console.error('错误堆栈:', error.stack); // 定位到具体哪一行出错
+      console.error('错误消息:', err.message); // 关键：获取具体失败原因
+      console.error('错误堆栈:', err.stack); // 定位到具体哪一行出错
     }
     return new Response('Seed 失败', { status: 500 });
   }
