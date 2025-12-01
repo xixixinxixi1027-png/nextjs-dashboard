@@ -16,44 +16,12 @@ import { useActionState } from 'react';
 
 export default function Form({
   customers,
-  invoice,
 }: {
   customers: CustomerField[];
-  invoice: InvoiceForm;
 }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const initialState: State = { message: null, errors: {} }
-  const updateInvoiceWithId = updateInvoice.bind(null, invoice.id)
-  const [state, formAction] = useActionState(updateInvoiceWithId, initialState)
-
-  // 定义带防抖的提交函数（300ms 防抖，避免重复提交）
-  // const debouncedSubmit = useDebouncedCallback(
-  //   async (formData: FormData) => {
-  //     setIsSubmitting(true)
-  //     try {
-  //       // 调用原服务器操作（如创建发票）
-  //       await createInvoice(formData)
-  //     } finally {
-  //       // 无论成功失败，都结束提交状态
-  //       setIsSubmitting(false)
-  //     }
-  //   },
-  //   300,
-  //   { leading: false, trailing: true }
-  // )
-
-  // // 自定义表单提交处理函数
-  // const handleSubmit = useCallback(
-  //   (e: React.FocusEvent<HTMLFormElement>) => {
-  //     // 阻止默认提交行为
-  //     e.preventDefault();
-  //     // 获取表单数据
-  //     const formData = new FormData(e.currentTarget)
-  //     // 调用防抖后的提交函数
-  //     debouncedSubmit(formData)
-  //   },
-  //   [debouncedSubmit]
-  // )
+  const [state, formAction] = useActionState(createInvoice, initialState);
 
   return (
     <form action={formAction}>
@@ -107,6 +75,7 @@ export default function Form({
                 step="0.01"
                 placeholder="Enter USD amount"
                 className="peer block w-full rounded-md border border-gray-200 py-2 pl-10 text-sm outline-2 placeholder:text-gray-500"
+                required
                 aria-describedby='amount-error'
               />
               <CurrencyDollarIcon className="pointer-events-none absolute left-3 top-1/2 h-[18px] w-[18px] -translate-y-1/2 text-gray-500 peer-focus:text-gray-900" />
