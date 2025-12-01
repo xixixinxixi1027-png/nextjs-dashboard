@@ -106,8 +106,7 @@ const UpdateInvoice = FormSchema.omit({ id: true, date: true });
 // 更新发票
 export async function updateInvoice(
     id: string,
-    formData: FormData,
-    prevState: State,
+    formData: FormData
 ) {
     const validateFields = UpdateInvoice.safeParse({
         customId: formData.get('customerId'),
