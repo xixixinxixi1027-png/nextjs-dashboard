@@ -8,6 +8,29 @@ import { revalidatePath } from "next/cache";
 import { redirect } from 'next/navigation';
 // 创建数据库客户端实例
 import postgres from 'postgres';
+// 登录表单
+import { signIn } from '@/auth';
+import { AuthError } from 'next-auth';
+
+// 登录表单
+export async function authenticate(
+    prevState: string | undefined,
+    formData: FormData,
+    ) {
+    try {
+        await signIn('credentials', formData);
+    } catch (error) {
+    if (error instanceof AuthError) {
+        switch (error.type) {
+        case 'CredentialsSignin':
+            return 'Invalid credentials.';
+        default:
+            return 'Something went wrong.';
+        }
+    }
+    throw error;
+    }
+}
 
 // 调用 postgres() 函数创建客户端实例，并将其赋值给变量 sql（后续通过 sql 执行 SQL 语句）
 const sql = postgres(process.env.POSTGRES_URL!, { ssl: 'require' });
